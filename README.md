@@ -1,6 +1,6 @@
-# Assistant - AI Sales Assistant
+# Assistant - AI  Assistant
 
-Assistant is a Dockerized AI sales assistant powered by **DeepSeek-Chat**. It provides REST APIs for interacting with the AI model, fine-tuning it on specific topics, and storing conversation history in a PostgreSQL database.
+Assistant is a Dockerized AI  assistant powered by **DeepSeek-Chat**. It provides REST APIs for interacting with the AI model, fine-tuning it on specific topics, and storing conversation history in a PostgreSQL database.
 
 ---
 
@@ -10,6 +10,7 @@ Assistant is a Dockerized AI sales assistant powered by **DeepSeek-Chat**. It pr
 - **PostgreSQL Integration**: Stores conversation history and user data.
 - **Dockerized**: Containerized for easy deployment and scalability.
 - **Fine-Tuning**: Train the assistant on specific topics for better performance.
+- **Environment Variables**: Load PostgreSQL credentials and JWT secret from `.env`.
 
 ---
 
