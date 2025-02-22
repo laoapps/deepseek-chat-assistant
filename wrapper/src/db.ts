@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Conversation } from "./types/types";
 
 const pool = new Pool({
     user: "postgres",
@@ -33,7 +34,7 @@ export const saveConversation = async (user_id: string, message: string, respons
     );
 };
 
-export const getConversationHistory = async (user_id: string) => {
+export const getConversationHistory = async (user_id: string): Promise<Conversation["history"]> => {
     const result = await pool.query("SELECT history FROM conversations WHERE user_id = $1", [user_id]);
     return result.rows[0]?.history || [];
 };
