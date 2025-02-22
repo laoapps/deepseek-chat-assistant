@@ -25,17 +25,21 @@ services:
       - "3000:3000"
     environment:
       - ASSISTANT_API_URL=http://assistant:5000
-      - DATABASE_URL=mongodb://mongo:27017/assistant
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/assistant
     depends_on:
       - assistant
-      - mongo
+      - postgres
 
-  mongo:
-    image: mongo:6.0
+  postgres:
+    image: postgres:13
     ports:
-      - "27017:27017"
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: assistant
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  mongo-data:
+  postgres-data:
