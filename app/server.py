@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import torch
 import os
-import redis
+import psycopg2
 import json
 
 # Initialize Flask app
@@ -20,8 +20,14 @@ if os.path.exists(FINE_TUNED_MODEL_PATH):
     model = AutoModelForCausalLM.from_pretrained(FINE_TUNED_MODEL_PATH, torch_dtype=torch.float16)
     model = model.to("cuda" if torch.cuda.is_available() else "cpu")
 
-# Initialize Redis for conversation history
-redis_client = redis.Redis(host="redis", port=6379, db=0)
+# PostgreSQL connection
+def get_db_connection():
+    return psycopg2.connect(
+        host="postgres",
+        database="assistant",
+        user="postgres",
+        password="password"
+    )
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -34,9 +40,12 @@ def chat():
         return jsonify({"error": "Missing message or user_id"}), 400
 
     # Retrieve conversation history
-    history = redis_client.get(f"conversation:{user_id}")
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT history FROM conversations WHERE user_id = %s", (user_id,))
+    history = cur.fetchone()
     if history:
-        history = json.loads(history)
+        history = json.loads(history[0])
     else:
         history = []
 
@@ -50,7 +59,13 @@ def chat():
 
     # Add assistant response to history
     history.append({"role": "assistant", "content": response})
-    redis_client.set(f"conversation:{user_id}", json.dumps(history))
+    cur.execute(
+        "INSERT INTO conversations (user_id, history) VALUES (%s, %s) ON CONFLICT (user_id) DO UPDATE SET history = %s",
+        (user_id, json.dumps(history), json.dumps(history))
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
 
     return jsonify({"response": response})
 
