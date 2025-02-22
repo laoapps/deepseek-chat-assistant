@@ -1,3 +1,4 @@
+import "dotenv/config"; // Load .env file
 import express, { Request, Response } from "express";
 import axios from "axios";
 import authMiddleware from "./auth";
