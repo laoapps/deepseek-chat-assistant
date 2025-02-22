@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import os
 import psycopg2
@@ -8,17 +8,31 @@ import json
 # Initialize Flask app
 app = Flask(__name__)
 
-# Load DeepSeek-Chat model and tokenizer
+# Define the model name and local path
 MODEL_NAME = "deepseek-ai/deepseek-chat-7b"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16)
-model = model.to("cuda" if torch.cuda.is_available() else "cpu")
+MODEL_LOCAL_PATH = "app/models/deepseek-chat-7b"
 
-# Load fine-tuned model (if available)
-FINE_TUNED_MODEL_PATH = "app/models/fine-tuned"
-if os.path.exists(FINE_TUNED_MODEL_PATH):
-    model = AutoModelForCausalLM.from_pretrained(FINE_TUNED_MODEL_PATH, torch_dtype=torch.float16)
-    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
+# Check if the model is already downloaded locally
+if not os.path.exists(MODEL_LOCAL_PATH):
+    print("Downloading DeepSeek model...")
+    # Download the model and tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16)
+
+    # Save the model and tokenizer locally
+    model.save_pretrained(MODEL_LOCAL_PATH)
+    tokenizer.save_pretrained(MODEL_LOCAL_PATH)
+    print("Model downloaded and saved locally.")
+else:
+    print("Loading DeepSeek model from local storage...")
+    # Load the model and tokenizer from local storage
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_LOCAL_PATH)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_LOCAL_PATH, torch_dtype=torch.float16)
+
+# Move the model to GPU if available
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = model.to(device)
+print(f"Model loaded on device: {device}")
 
 # PostgreSQL connection
 def get_db_connection():
@@ -53,7 +67,7 @@ def chat():
     history.append({"role": "user", "content": user_input})
 
     # Generate response
-    inputs = tokenizer(user_input, return_tensors="pt").to(model.device)
+    inputs = tokenizer(user_input, return_tensors="pt").to(device)
     outputs = model.generate(**inputs, max_length=100, num_return_sequences=1)
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
@@ -62,7 +76,6 @@ def chat():
     cur.execute(
         "INSERT INTO conversations (user_id, history) VALUES (%s, %s) ON CONFLICT (user_id) DO UPDATE SET history = %s",
         (user_id, json.dumps(history), json.dumps(history))
-    )
     conn.commit()
     cur.close()
     conn.close()
@@ -78,9 +91,12 @@ def train():
     if not training_data:
         return jsonify({"error": "No training data provided"}), 400
 
+    # Save training data to a file
     with open("app/data/training_data.json", "w") as f:
         json.dump(training_data, f)
 
+    # Fine-tune the model (this is a placeholder for actual fine-tuning logic)
+    # In a real implementation, you would use a training script here.
     os.system("python3 app/train.py")
     return jsonify({"message": "Training completed successfully"})
 
