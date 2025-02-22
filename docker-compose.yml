@@ -1,0 +1,41 @@
+version: "3.8"
+services:
+  assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app/models:/app/app/models
+      - ./app/data:/app/app/data
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  wrapper:
+    build:
+      context: ./wrapper
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - ASSISTANT_API_URL=http://assistant:5000
+      - DATABASE_URL=mongodb://mongo:27017/assistant
+    depends_on:
+      - assistant
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
