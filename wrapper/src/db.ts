@@ -1,11 +1,10 @@
 import { Pool } from "pg";
-import { Conversation } from "./types/types";
 
 const pool = new Pool({
-    user: "postgres",
+    user: process.env.POSTGRES_USER || "postgres",
     host: "postgres",
-    database: "assistant",
-    password: "password",
+    database: process.env.POSTGRES_DB || "assistant",
+    password: process.env.POSTGRES_PASSWORD || "yourpassword",
     port: 5432,
 });
 
@@ -34,7 +33,7 @@ export const saveConversation = async (user_id: string, message: string, respons
     );
 };
 
-export const getConversationHistory = async (user_id: string): Promise<Conversation["history"]> => {
+export const getConversationHistory = async (user_id: string) => {
     const result = await pool.query("SELECT history FROM conversations WHERE user_id = $1", [user_id]);
     return result.rows[0]?.history || [];
 };
