@@ -1,6 +1,6 @@
-# Assistant - AI  Assistant
+# Assistant - AI Assistant
 
-Assistant is a Dockerized AI  assistant powered by **DeepSeek-Chat**. It provides REST APIs for interacting with the AI model, fine-tuning it on specific topics, and storing conversation history in a PostgreSQL database.
+Assistant is a Dockerized AI assistant powered by **DeepSeek-Chat**. It provides REST APIs for interacting with the AI model, fine-tuning it on specific topics, and storing conversation history in a PostgreSQL database.
 
 ---
 
@@ -39,3 +39,70 @@ Assistant is a Dockerized AI  assistant powered by **DeepSeek-Chat**. It provide
 ```bash
 git clone https://github.com/your-username/assistant.git
 cd assistant
+```
+
+### **2. Start the Server**
+```bash
+docker-compose up --build
+```
+
+---
+
+## **API Documentation**
+
+### **POST /chat**
+**Description:** Generate a response to a user message.
+
+**Request Body:**
+```json
+{
+    "message": "Your question or message here",
+    "user_id": "123"
+}
+```
+
+**Response:**
+```json
+{
+    "response": "Generated response from the assistant"
+}
+```
+
+### **POST /train**
+**Description:** Fine-tune the assistant on a specific topic.
+
+**Request Body:**
+```json
+{
+    "data": [
+        {"text": "Training example 1"},
+        {"text": "Training example 2"}
+    ]
+}
+```
+
+**Response:**
+```json
+{
+    "message": "Training completed successfully"
+}
+```
+
+---
+
+## **Usage**
+
+### **1. Chat API**
+```bash
+curl -X POST http://localhost:5000/chat \
+     -H "Content-Type: application/json" \
+     -d '{"message": "What are the best features of your product?", "user_id": "123"}'
+```
+
+### **2. Train API**
+```bash
+curl -X POST http://localhost:5000/train \
+     -H "Content-Type: application/json" \
+     -d '{"data": [{"text": "Your training data here"}]}'
+```
+
