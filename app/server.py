@@ -1,12 +1,17 @@
+import os
 from flask import Flask, request, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-import os
 import psycopg2
 import json
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Load environment variables
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "yourpassword")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "assistant")
 
 # Define the model name and local path
 MODEL_NAME = "deepseek-ai/deepseek-chat-7b"
@@ -38,9 +43,9 @@ print(f"Model loaded on device: {device}")
 def get_db_connection():
     return psycopg2.connect(
         host="postgres",
-        database="assistant",
-        user="postgres",
-        password="password"
+        database=POSTGRES_DB,
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD
     )
 
 @app.route("/chat", methods=["POST"])
