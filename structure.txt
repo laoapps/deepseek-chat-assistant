@@ -1,0 +1,26 @@
+assistant/
+│
+├── docker-compose.yml
+├── Dockerfile
+├── Dockerfile.wrapper
+├── requirements.txt
+├── app/
+│   ├── server.py
+│   ├── train.py
+│   ├── models/
+│   │   └── (DeepSeek model files will be downloaded here)
+│   └── data/
+│       └── training_data.json
+├── wrapper/
+│   ├── src/
+│   │   ├── index.ts
+│   │   ├── auth.ts
+│   │   ├── db.ts
+│   │   ├── rateLimit.ts
+│   │   ├── analytics.ts
+│   │   └── types/
+│   │       └── types.ts
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── Dockerfile
+└── README.md
